@@ -47,6 +47,7 @@ set(_install_commands
 
   # libnvinfer
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvinfer.so.${TENSOR_RT_VERSION}" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.${TENSOR_RT_VERSION}
+  COMMAND bash -c "patchelf --set-rpath '\$ORIGIN' ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.${TENSOR_RT_VERSION} || true"
   COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer.so.${TENSOR_RT_VERSION} ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.10
   COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer.so.10 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so
 
