@@ -1,6 +1,6 @@
 # tensorrt_ros
 
-This `catkin` project acts as a wrapper for the NVIDIA TensorRT library. It downloads the pre-compiled TensorRT binary archive and automatically integrates its headers, libraries, and CMake configuration into the corresponding directories of your ROS workspace target folder (`devel` or `install`).
+ This `catkin` project acts as a wrapper for the NVIDIA TensorRT library. It downloads the pre-compiled TensorRT binary archive and automatically integrates its headers and libraries into the corresponding directories of your ROS workspace target folder (`devel` or `install`).
 
 This allows other ROS packages in your workspace to easily depend on TensorRT C++ APIs.
 
