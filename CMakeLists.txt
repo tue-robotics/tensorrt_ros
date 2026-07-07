@@ -23,10 +23,15 @@ else()
   set(should_log OFF)
 endif()
 
-set(PROJECT_VERSION "10.16.1.11")
-message(STATUS "Project version: ${PROJECT_VERSION}")
+set(PROJECT_VERSION "10.16.1")
+set(TENSOR_RT_BUILD "11")
 
-set(TENSORRT_URL_BASE "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/10.16.1/tars")
+set(TENSOR_RT_VERSION "${PROJECT_VERSION}")
+set(TENSOR_RT_VERSION_FULL "${PROJECT_VERSION}.${TENSOR_RT_BUILD}")
+
+set(CUDA_MAX_VERSION "12.9")
+
+set(TENSORRT_URL_BASE "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TENSOR_RT_VERSION}/tars")
 
 set(EP_NAME "EP_${PROJECT_NAME}")
 set(TENSORRT_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${EP_NAME}-prefix/src/${EP_NAME}")
@@ -38,40 +43,38 @@ set(TENSORRT_LIB_DIR
     "${TENSORRT_INSTALL_DIR}/lib"
     CACHE PATH "tensorrt lib directory." FORCE)
 
-set(TENSOR_RT_VERSION "10.16.1.11")
-set(CUDA_MAX_VERSION "12.9")
 set(_install_commands
   COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${TENSORRT_SOURCE_DIR}/include ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_INCLUDE_DESTINATION}
-  
+
   # libnvinfer
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvinfer.so.10.16.1" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.10.16.1
-  COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer.so.10.16.1 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.10
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvinfer.so.${TENSOR_RT_VERSION}" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.${TENSOR_RT_VERSION}
+  COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer.so.${TENSOR_RT_VERSION} ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.10
   COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer.so.10 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so
-  
+
   # libnvinfer_plugin
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvinfer_plugin.so.10.16.1" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so.10.16.1
-  COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer_plugin.so.10.16.1 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so.10
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvinfer_plugin.so.${TENSOR_RT_VERSION}" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so.${TENSOR_RT_VERSION}
+  COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer_plugin.so.${TENSOR_RT_VERSION} ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so.10
   COMMAND ${CMAKE_COMMAND} -E create_symlink libnvinfer_plugin.so.10 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so
-  
+
   # libnvonnxparser
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvonnxparser.so.10.16.1" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so.10.16.1
-  COMMAND ${CMAKE_COMMAND} -E create_symlink libnvonnxparser.so.10.16.1 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so.10
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${TENSORRT_SOURCE_DIR}/lib/libnvonnxparser.so.${TENSOR_RT_VERSION}" ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so.${TENSOR_RT_VERSION}
+  COMMAND ${CMAKE_COMMAND} -E create_symlink libnvonnxparser.so.${TENSOR_RT_VERSION} ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so.10
   COMMAND ${CMAKE_COMMAND} -E create_symlink libnvonnxparser.so.10 ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so
 )
 
 set(_build_byproducts
-  "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.10.16.1"
+  "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so.${TENSOR_RT_VERSION}"
   "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer.so"
-  "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so.10.16.1"
+  "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so.${TENSOR_RT_VERSION}"
   "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvinfer_plugin.so"
-  "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so.10.16.1"
+  "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so.${TENSOR_RT_VERSION}"
   "${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/libnvonnxparser.so"
 )
 
 set(_install_files
-  "${TENSORRT_LIB_DIR}/libnvinfer.so.10.16.1"
-  "${TENSORRT_LIB_DIR}/libnvinfer_plugin.so.10.16.1"
-  "${TENSORRT_LIB_DIR}/libnvonnxparser.so.10.16.1"
+  "${TENSORRT_LIB_DIR}/libnvinfer.so.${TENSOR_RT_VERSION}"
+  "${TENSORRT_LIB_DIR}/libnvinfer_plugin.so.${TENSOR_RT_VERSION}"
+  "${TENSORRT_LIB_DIR}/libnvonnxparser.so.${TENSOR_RT_VERSION}"
 )
 
 include(CheckLanguage)
@@ -79,13 +82,13 @@ check_language(CUDA)
 if(CMAKE_CUDA_COMPILER)
   enable_language(CUDA)
   message(STATUS "Compiling with CUDA")
-  set(TENSORRT_FILENAME "TensorRT-${TENSOR_RT_VERSION}.Linux.x86_64-gnu.cuda-${CUDA_MAX_VERSION}.tar.gz")
+  set(TENSORRT_FILENAME "TensorRT-${TENSOR_RT_VERSION_FULL}.Linux.x86_64-gnu.cuda-${CUDA_MAX_VERSION}.tar.gz")
   list(APPEND _install_commands
     COMMAND bash -c "cp -a ${TENSORRT_SOURCE_DIR}/lib/libnvinfer_builder_resource*.so* ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_LIB_DESTINATION}/ || true"
   )
 else()
   message(STATUS "Compiling without CUDA")
-  set(TENSORRT_FILENAME "TensorRT-${TENSOR_RT_VERSION}.Linux.x86_64-gnu.cuda-${CUDA_MAX_VERSION}.tar.gz")
+  set(TENSORRT_FILENAME "TensorRT-${TENSOR_RT_VERSION_FULL}.Linux.x86_64-gnu.cuda-${CUDA_MAX_VERSION}.tar.gz")
 endif()
 
 include(ExternalProject)
