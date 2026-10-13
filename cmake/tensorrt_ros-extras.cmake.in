@@ -1,3 +1,25 @@
-list(APPEND @PROJECT_NAME@_INCLUDE_DIRS "${@PROJECT_NAME@_PREFIX}/@CATKIN_GLOBAL_INCLUDE_DESTINATION@")
-list(APPEND @PROJECT_NAME@_LIBRARIES "${@PROJECT_NAME@_PREFIX}/@CATKIN_PACKAGE_LIB_DESTINATION@/libnvonnxparser.so" "${@PROJECT_NAME@_PREFIX}/@CATKIN_PACKAGE_LIB_DESTINATION@/libnvinfer.so" "${@PROJECT_NAME@_PREFIX}/@CATKIN_PACKAGE_LIB_DESTINATION@/libnvinfer_plugin.so")
-set(@PROJECT_NAME@_CUDA_ENABLED "@tensorrt_ros_CUDA_ENABLED@")
+# Resolve paths relative to this package so isolated and relocated installs work.
+get_filename_component(_tensorrt_ros_prefix "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+set(tensorrt_ros_INCLUDE_DIRS "${_tensorrt_ros_prefix}/include")
+set(tensorrt_ros_LIBRARIES "")
+set(tensorrt_ros_CUDA_ENABLED "@tensorrt_ros_CUDA_ENABLED@")
+
+foreach(_tensorrt_ros_library nvinfer nvinfer_plugin nvonnxparser)
+  if(NOT TARGET tensorrt_ros::${_tensorrt_ros_library})
+    add_library(tensorrt_ros::${_tensorrt_ros_library} SHARED IMPORTED)
+    set_target_properties(tensorrt_ros::${_tensorrt_ros_library} PROPERTIES
+      IMPORTED_LOCATION "${_tensorrt_ros_prefix}/lib/lib${_tensorrt_ros_library}.so"
+      INTERFACE_INCLUDE_DIRECTORIES "${tensorrt_ros_INCLUDE_DIRS}"
+    )
+  endif()
+  list(APPEND tensorrt_ros_LIBRARIES tensorrt_ros::${_tensorrt_ros_library})
+endforeach()
+
+if(NOT TARGET tensorrt_ros::tensorrt_ros)
+  add_library(tensorrt_ros::tensorrt_ros INTERFACE IMPORTED)
+  set_target_properties(tensorrt_ros::tensorrt_ros PROPERTIES
+    INTERFACE_LINK_LIBRARIES "${tensorrt_ros_LIBRARIES}"
+  )
+endif()
+unset(_tensorrt_ros_library)
+unset(_tensorrt_ros_prefix)

@@ -1,0 +1,1 @@
+ament_prepend_unique_value @ENV_VAR_NAME@ "$AMENT_CURRENT_PREFIX/lib"

@@ -1,47 +1,57 @@
 # tensorrt_ros
 
- This `catkin` project acts as a wrapper for the NVIDIA TensorRT library. It downloads the pre-compiled TensorRT binary archive and automatically integrates its headers and libraries into the corresponding directories of your ROS workspace target folder (`devel` or `install`).
+This ROS 2 `ament_cmake` package downloads the NVIDIA TensorRT 10.16.1 binary
+archive for Linux x86_64 and installs its headers and shared libraries into the
+package's install prefix. Source your workspace setup to add its libraries to
+the runtime library search path.
 
-This allows other ROS packages in your workspace to easily depend on TensorRT C++ APIs.
+## Build
 
-## Usage in `package.xml`
+```sh
+colcon build --packages-select tensorrt_ros
+source install/setup.bash
+colcon test --packages-select tensorrt_ros
+colcon test-result --verbose
+```
 
-To use TensorRT in your ROS package, add it as a dependency in your `package.xml`:
+The build requires network access to NVIDIA's archive. To use a previously
+downloaded archive, pass `--cmake-args -DTENSORRT_URL=/path/to/TensorRT.tar.gz`.
+
+## Usage in package.xml
 
 ```xml
-  <depend>tensorrt_ros</depend>
+<depend>tensorrt_ros</depend>
 ```
 
-## Usage in `CMakeLists.txt`
-
-You can link against TensorRT by including it in your `find_package` call:
+## Usage in CMakeLists.txt
 
 ```cmake
-find_package(catkin REQUIRED COMPONENTS
-  tensorrt_ros
-)
+find_package(ament_cmake REQUIRED)
+find_package(tensorrt_ros REQUIRED)
 
-catkin_package(
-  ...
-  CATKIN_DEPENDS tensorrt_ros # If your package exports TensorRT dependencies
-)
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
-# Example for an executable (e.g. a ROS Node)
 add_executable(my_tensorrt_node src/my_node.cpp)
-target_link_libraries(my_tensorrt_node ${catkin_LIBRARIES})
+target_link_libraries(my_tensorrt_node PRIVATE tensorrt_ros::tensorrt_ros)
 
-# Example for a library
-add_library(my_tensorrt_lib src/my_lib.cpp)
-target_link_libraries(my_tensorrt_lib ${catkin_LIBRARIES})
+add_library(my_tensorrt_lib SHARED src/my_lib.cpp)
+target_link_libraries(my_tensorrt_lib PUBLIC tensorrt_ros::tensorrt_ros)
+
+# If your exported library exposes TensorRT to downstream consumers:
+ament_export_dependencies(tensorrt_ros)
+# Install and export your own library targets before calling ament_package().
+ament_package()
 ```
 
-## Note on CUDA
+For individual libraries, link `tensorrt_ros::nvinfer`,
+`tensorrt_ros::nvinfer_plugin`, or `tensorrt_ros::nvonnxparser`.
+`tensorrt_ros_INCLUDE_DIRS`, `tensorrt_ros_LIBRARIES`, and
+`tensorrt_ros_CUDA_ENABLED` remain available for consumers using CMake variables.
 
-The CMake configuration automatically checks if a CUDA compiler (`nvcc`) is available on your system. If CMake fails to find CUDA and logs an issue, ensure that your CUDA toolkit is properly installed and that `nvcc` is in your system's `$PATH`, or set it manually:
+## CUDA
+
+The binary archive targets CUDA 12.9. CUDA runtime dependencies must be available
+on the target system. The CMake configuration checks for a CUDA compiler (`nvcc`)
+and reports its availability through `tensorrt_ros_CUDA_ENABLED`. To select a
+CUDA compiler explicitly:
 
 ```sh
 export CUDACXX=/usr/local/cuda/bin/nvcc
