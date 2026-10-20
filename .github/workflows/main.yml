@@ -10,4 +10,5 @@ jobs:
       - name: TUe CI
         uses: tue-robotics/tue-env/ci/main@master
         with:
+          image: ghcr.io/tue-robotics/tue-env-ros-jazzy
           package: ${{ github.event.repository.name }}
