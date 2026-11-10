@@ -1,25 +1,26 @@
 # Resolve paths relative to this package so isolated and relocated installs work.
-get_filename_component(_tensorrt_ros_prefix "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
-set(tensorrt_ros_INCLUDE_DIRS "${_tensorrt_ros_prefix}/include")
-set(tensorrt_ros_LIBRARIES "")
-set(tensorrt_ros_CUDA_ENABLED "@tensorrt_ros_CUDA_ENABLED@")
+get_filename_component(_@PROJECT_NAME@_prefix "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+set(@PROJECT_NAME@_INCLUDE_DIRS "${_@PROJECT_NAME@_prefix}/include/@PROJECT_NAME@")
+set(@PROJECT_NAME@_CUDA_ENABLED "@tensorrt_ros_CUDA_ENABLED@")
 
-foreach(_tensorrt_ros_library nvinfer nvinfer_plugin nvonnxparser)
-  if(NOT TARGET tensorrt_ros::${_tensorrt_ros_library})
-    add_library(tensorrt_ros::${_tensorrt_ros_library} SHARED IMPORTED)
-    set_target_properties(tensorrt_ros::${_tensorrt_ros_library} PROPERTIES
-      IMPORTED_LOCATION "${_tensorrt_ros_prefix}/lib/lib${_tensorrt_ros_library}.so"
-      INTERFACE_INCLUDE_DIRECTORIES "${tensorrt_ros_INCLUDE_DIRS}"
+set(@PROJECT_NAME@_LIBRARIES)
+foreach(_@PROJECT_NAME@_library nvinfer nvinfer_plugin nvonnxparser)
+  if(NOT TARGET @PROJECT_NAME@::${_@PROJECT_NAME@_library})
+    add_library(@PROJECT_NAME@::${_@PROJECT_NAME@_library} SHARED IMPORTED)
+    set_target_properties(@PROJECT_NAME@::${_@PROJECT_NAME@_library} PROPERTIES
+      IMPORTED_LOCATION "${_@PROJECT_NAME@_prefix}/lib/lib${_@PROJECT_NAME@_library}.so"
+      INTERFACE_INCLUDE_DIRECTORIES "${@PROJECT_NAME@_INCLUDE_DIRS}"
     )
   endif()
-  list(APPEND tensorrt_ros_LIBRARIES tensorrt_ros::${_tensorrt_ros_library})
+  list(APPEND @PROJECT_NAME@_LIBRARIES @PROJECT_NAME@::${_@PROJECT_NAME@_library})
 endforeach()
 
-if(NOT TARGET tensorrt_ros::tensorrt_ros)
-  add_library(tensorrt_ros::tensorrt_ros INTERFACE IMPORTED)
-  set_target_properties(tensorrt_ros::tensorrt_ros PROPERTIES
-    INTERFACE_LINK_LIBRARIES "${tensorrt_ros_LIBRARIES}"
+if(NOT TARGET @PROJECT_NAME@::@PROJECT_NAME@)
+  add_library(@PROJECT_NAME@::@PROJECT_NAME@ INTERFACE IMPORTED)
+  set_target_properties(@PROJECT_NAME@::@PROJECT_NAME@ PROPERTIES
+    INTERFACE_LINK_LIBRARIES "${@PROJECT_NAME@_LIBRARIES}"
   )
 endif()
-unset(_tensorrt_ros_library)
-unset(_tensorrt_ros_prefix)
+
+unset(_@PROJECT_NAME@_library)
+unset(_@PROJECT_NAME@_prefix)

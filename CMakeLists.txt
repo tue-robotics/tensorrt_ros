@@ -3,15 +3,10 @@ project(tensorrt_ros)
 
 find_package(ament_cmake REQUIRED)
 
-set(TENSOR_RT_VERSION "10.16.1")
-set(TENSOR_RT_BUILD "11")
-set(TENSOR_RT_VERSION_FULL "${TENSOR_RT_VERSION}.${TENSOR_RT_BUILD}")
-set(CUDA_MAX_VERSION "12.9")
-
-set(TENSORRT_URL_BASE
-  "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${TENSOR_RT_VERSION}/tars")
-set(TENSORRT_FILENAME "TensorRT-${TENSOR_RT_VERSION_FULL}.Linux.x86_64-gnu.cuda-${CUDA_MAX_VERSION}.tar.gz")
-set(TENSORRT_URL "${TENSORRT_URL_BASE}/${TENSORRT_FILENAME}" CACHE STRING "TensorRT binary archive URL or local path")
+# The package version is the TensorRT version that gets downloaded
+ament_package_xml()
+set(${PROJECT_NAME}_TENSORRT_BUILD "11")
+set(${PROJECT_NAME}_CUDA_MAX_VERSION "12.9")
 
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" OR NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
   message(FATAL_ERROR "The TensorRT binary archive requires Linux x86_64")
@@ -21,17 +16,26 @@ include(CheckLanguage)
 check_language(CUDA)
 if(CMAKE_CUDA_COMPILER)
   enable_language(CUDA)
-  set(tensorrt_ros_CUDA_ENABLED TRUE)
+  message(STATUS "Compiling with CUDA")
+  set(${PROJECT_NAME}_CUDA_ENABLED TRUE)
 else()
-  set(tensorrt_ros_CUDA_ENABLED FALSE)
+  message(STATUS "Compiling without CUDA")
+  set(${PROJECT_NAME}_CUDA_ENABLED FALSE)
 endif()
 
-set(EP_NAME "EP_${PROJECT_NAME}")
-set(TENSORRT_SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/${EP_NAME}-prefix/src/${EP_NAME}")
+set(${PROJECT_NAME}_URL_BASE
+  "https://developer.nvidia.com/downloads/compute/machine-learning/tensorrt/${${PROJECT_NAME}_VERSION}/tars")
+set(${PROJECT_NAME}_ARCHIVE_NAME
+  "TensorRT-${${PROJECT_NAME}_VERSION}.${${PROJECT_NAME}_TENSORRT_BUILD}.Linux.x86_64-gnu.cuda-${${PROJECT_NAME}_CUDA_MAX_VERSION}.tar.gz")
+set(${PROJECT_NAME}_URL "${${PROJECT_NAME}_URL_BASE}/${${PROJECT_NAME}_ARCHIVE_NAME}")
+
+set(${PROJECT_NAME}_EP_NAME "EP_${PROJECT_NAME}")
+set(${PROJECT_NAME}_ARCHIVE_DIR
+  "${CMAKE_CURRENT_BINARY_DIR}/${${PROJECT_NAME}_EP_NAME}-prefix/src/${${PROJECT_NAME}_EP_NAME}")
 
 include(ExternalProject)
-externalproject_add(${EP_NAME}
-  URL "${TENSORRT_URL}"
+externalproject_add(${${PROJECT_NAME}_EP_NAME}
+  URL "${${PROJECT_NAME}_URL}"
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
   DOWNLOAD_NO_PROGRESS TRUE
   CONFIGURE_COMMAND ""
@@ -40,21 +44,14 @@ externalproject_add(${EP_NAME}
   INSTALL_COMMAND ""
 )
 
-install(DIRECTORY "${TENSORRT_SOURCE_DIR}/include/" DESTINATION include)
-# Preserve the archive's SONAME symlinks and all runtime libraries, including
-# builder resources needed when creating inference engines.
-install(DIRECTORY "${TENSORRT_SOURCE_DIR}/lib/" DESTINATION lib
-  FILES_MATCHING PATTERN "*.so*")
-
-if(APPLE)
-  set(ENV_VAR_NAME DYLD_LIBRARY_PATH)
-else()
-  set(ENV_VAR_NAME LD_LIBRARY_PATH)
-endif()
-ament_environment_hooks(
-  "${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/99.tensorrt_ros_library_path.sh.in"
-  "${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/99.tensorrt_ros_library_path.dsv.in"
-)
+# Headers go in a package-specific directory, so they don't end up directly in a merged include directory
+install(DIRECTORY "${${PROJECT_NAME}_ARCHIVE_DIR}/include/" DESTINATION include/${PROJECT_NAME})
+# Preserve the archive's SONAME symlinks and install all runtime libraries, including the
+# builder resources that are needed to create inference engines. The static libraries are skipped.
+install(DIRECTORY "${${PROJECT_NAME}_ARCHIVE_DIR}/lib/" DESTINATION lib
+  USE_SOURCE_PERMISSIONS
+  FILES_MATCHING PATTERN "*.so*"
+  PATTERN "stubs" EXCLUDE)
 
 if(BUILD_TESTING)
   find_package(ament_cmake_lint_cmake REQUIRED)
@@ -63,4 +60,4 @@ if(BUILD_TESTING)
   ament_xmllint(MAX_LINE_LENGTH 120)
 endif()
 
-ament_package(CONFIG_EXTRAS "cmake/tensorrt_ros-extras.cmake.in")
+ament_package(CONFIG_EXTRAS "cmake/${PROJECT_NAME}-extras.cmake.in")
