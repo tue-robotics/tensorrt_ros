@@ -1,48 +1,24 @@
 # tensorrt_ros
 
- This `catkin` project acts as a wrapper for the NVIDIA TensorRT library. It downloads the pre-compiled TensorRT binary archive and automatically integrates its headers and libraries into the corresponding directories of your ROS workspace target folder (`devel` or `install`).
+This CMake project downloads the binary NVIDIA TensorRT archive (Linux x86_64, CUDA 12.x) and installs its headers and libraries into the ROS 2 install prefix.
+The package version is the TensorRT version that gets downloaded.
 
-This allows other ROS packages in your workspace to easily depend on TensorRT C++ APIs.
-
-## Usage in `package.xml`
-
-To use TensorRT in your ROS package, add it as a dependency in your `package.xml`:
-
-```xml
+The package can be used in a ROS 2 workspace by adding:
+```XML
   <depend>tensorrt_ros</depend>
 ```
+to your `package.xml`. Headers are installed to `include/tensorrt_ros` and libraries to `lib` of the workspace install folder.
 
-## Usage in `CMakeLists.txt`
-
-You can link against TensorRT by including it in your `find_package` call:
-
-```cmake
-find_package(catkin REQUIRED COMPONENTS
-  tensorrt_ros
-)
-
-catkin_package(
-  ...
-  CATKIN_DEPENDS tensorrt_ros # If your package exports TensorRT dependencies
-)
-
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
-# Example for an executable (e.g. a ROS Node)
-add_executable(my_tensorrt_node src/my_node.cpp)
-target_link_libraries(my_tensorrt_node ${catkin_LIBRARIES})
-
-# Example for a library
-add_library(my_tensorrt_lib src/my_lib.cpp)
-target_link_libraries(my_tensorrt_lib ${catkin_LIBRARIES})
+Usage in a CMake project:
+```CMake
+find_package(tensorrt_ros REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC tensorrt_ros::tensorrt_ros)
 ```
+`tensorrt_ros::tensorrt_ros` links `nvinfer`, `nvinfer_plugin` and `nvonnxparser`. To link a single library, use `tensorrt_ros::nvinfer`, `tensorrt_ros::nvinfer_plugin` or `tensorrt_ros::nvonnxparser`.
+`tensorrt_ros_INCLUDE_DIRS` and `tensorrt_ros_LIBRARIES` are also available.
+`tensorrt_ros_CUDA_ENABLED` tells whether a CUDA compiler was found when this package was built.
 
-## Note on CUDA
-
-The CMake configuration automatically checks if a CUDA compiler (`nvcc`) is available on your system. If CMake fails to find CUDA and logs an issue, ensure that your CUDA toolkit is properly installed and that `nvcc` is in your system's `$PATH`, or set it manually:
-
+If you get the error `No CMAKE_CUDA_COMPILER could be found.`, then the CUDA compiler `nvcc` cannot be found in the default search paths (`$PATH`). In this case, you have to set the path to `nvcc` manually:
 ```sh
 export CUDACXX=/usr/local/cuda/bin/nvcc
 ```
